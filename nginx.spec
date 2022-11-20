@@ -18,8 +18,8 @@
 
 Name:              nginx
 Epoch:             1
-Version:           1.14.1
-Release:           9%{?dist}
+Version:           1.16.1
+Release:           1%{?dist}
 
 Summary:           A high performance web server and reverse proxy server
 Group:             System Environment/Daemons
@@ -46,30 +46,18 @@ Source210:         UPGRADE-NOTES-1.6-to-1.10
 # -D_FORTIFY_SOURCE=2 causing warnings to turn into errors.
 Patch0:            nginx-auto-cc-gcc.patch
 
-# Apply fix for bug in glibc libcrypt, if needed only.
-# That has been fixed some time in glibc-2.3.X and is
-# not needed with libxcrypt anyways.
-Patch1:            0001-unix-ngx_user-Apply-fix-for-really-old-bug-in-glibc-.patch
-
 # downstream patch - changing logs permissions to 664 instead
 # previous 644
-Patch2:            nginx-1.14.0-logs-perm.patch
+Patch1:            nginx-1.14.0-logs-perm.patch
 
 # PKCS#11 engine fix
-Patch3:            nginx-1.14.0-pkcs11.patch
+Patch2:            nginx-1.16.0-pkcs11.patch
 
 # https://bugzilla.redhat.com/show_bug.cgi?id=1655530
-Patch4:            nginx-1.14.1-perl-module-hardening.patch
+Patch3:            nginx-1.14.1-perl-module-hardening.patch
 
 # https://bugzilla.redhat.com/show_bug.cgi?id=1643647
-Patch5:            nginx-1.14.1-enable-tls1v3-by-default.patch
-
-# https://bugzilla.redhat.com/show_bug.cgi?id=1741860
-# https://bugzilla.redhat.com/show_bug.cgi?id=1735741
-# https://bugzilla.redhat.com/show_bug.cgi?id=1741864
-Patch200: nginx-1.14.1-CVE-2019-9511.patch
-Patch201: nginx-1.14.1-CVE-2019-9513.patch
-Patch202: nginx-1.14.1-CVE-2019-9516.patch
+Patch4:            nginx-1.16.0-enable-tls1v3-by-default.patch
 
 %if 0%{?with_gperftools}
 BuildRequires:     gperftools-devel
@@ -80,7 +68,7 @@ BuildRequires:     zlib-devel
 
 Requires:          nginx-filesystem = %{epoch}:%{version}-%{release}
 
-%if 0%{?rhel} || 0%{?fedora} < 24
+%if 0%{?rhel} > 0 && 0%{?rhel} < 8 || %{?openEuler} == 2
 # Introduced at 1:1.10.0-1 to ease upgrade path. To be removed later.
 Requires:          nginx-all-modules = %{epoch}:%{version}-%{release}
 %endif
@@ -118,15 +106,7 @@ Requires:          nginx-mod-mail = %{epoch}:%{version}-%{release}
 Requires:          nginx-mod-stream = %{epoch}:%{version}-%{release}
 
 %description all-modules
-%{summary}.
-%if 0%{?rhel}
-The main nginx package depends on this to ease the upgrade path. After a grace
-period of several months, modules will become optional.
-%endif
-%if 0%{?fedora} && 0%{?fedora} < 24
-The main nginx package depends on this to ease the upgrade path. Starting from
-Fedora 24, modules are optional.
-%endif
+A meta package that installs all available Nginx modules.
 
 %package filesystem
 Group:             System Environment/Daemons
@@ -209,11 +189,6 @@ Requires:          nginx
 %patch2 -p1
 %patch3 -p1
 %patch4 -p1
-%patch5 -p1
-
-%patch200 -p1
-%patch201 -p1
-%patch202 -p1
 
 cp %{SOURCE200} %{SOURCE210} %{SOURCE10} %{SOURCE12} .
 
@@ -252,6 +227,7 @@ export DESTDIR=%{buildroot}
     --with-http_ssl_module \
     --with-http_v2_module \
     --with-http_realip_module \
+    --with-stream_ssl_preread_module \
     --with-http_addition_module \
     --with-http_xslt_module=dynamic \
     --with-http_image_filter_module=dynamic \
@@ -485,13 +461,23 @@ fi
 
 
 %changelog
-* Fri Aug 30 2019 Lubos Uhliarik <luhliari@redhat.com> - 1:1.14.1-9
-- Resolves: #1744811 - CVE-2019-9511 nginx:1.14/nginx: HTTP/2: large amount of
-  data request leads to denial of service
-- Resolves: #1744325 - CVE-2019-9513 nginx:1.14/nginx: HTTP/2: flood using
+* Thu Aug 29 2019 Lubos Uhliarik <luhliari@redhat.com> - 1:1.16.1-1
+- update to 1.16.1
+- Resolves: #1745697 - CVE-2019-9511 nginx:1.16/nginx: HTTP/2: large amount
+  of data request leads to denial of service
+- Resolves: #1745690 - CVE-2019-9513 nginx:1.16/nginx: HTTP/2: flood using
   PRIORITY frames resulting in excessive resource consumption
-- Resolves: #1745094 - CVE-2019-9516 nginx:1.14/nginx: HTTP/2: 0-length
+- Resolves: #1745645 - CVE-2019-9516 nginx:1.16/nginx: HTTP/2: 0-length
   headers leads to denial of service
+
+* Wed Jun 26 2019 Lubos Uhliarik <luhliari@redhat.com> - 1:1.16.0-2
+- Resolves: #1718929 - ssl_protocols config option has faulty behavior
+  in nginx:1.16
+
+* Mon May 06 2019 Lubos Uhliarik <luhliari@redhat.com> - 1:1.16.0-1
+- new version 1.16.0
+- enable ngx_stream_ssl_preread module
+- main package does NOT require all-modules package
 
 * Wed Dec 12 2018 Lubos Uhliarik <luhliari@redhat.com> - 1:1.14.1-8
 - enable TLS 1.3 by default (#1643647)

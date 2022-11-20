@@ -18,8 +18,8 @@
 
 Name:              nginx
 Epoch:             1
-Version:           1.16.1
-Release:           1%{?dist}
+Version:           1.18.0
+Release:           2%{?dist}
 
 Summary:           A high performance web server and reverse proxy server
 Group:             System Environment/Daemons
@@ -58,6 +58,9 @@ Patch3:            nginx-1.14.1-perl-module-hardening.patch
 
 # https://bugzilla.redhat.com/show_bug.cgi?id=1643647
 Patch4:            nginx-1.16.0-enable-tls1v3-by-default.patch
+
+# https://bugzilla.redhat.com/show_bug.cgi?id=1668717
+Patch5:            nginx-1.18.0-pkcs11-cert.patch
 
 %if 0%{?with_gperftools}
 BuildRequires:     gperftools-devel
@@ -189,6 +192,7 @@ Requires:          nginx
 %patch2 -p1
 %patch3 -p1
 %patch4 -p1
+%patch5 -p1
 
 cp %{SOURCE200} %{SOURCE210} %{SOURCE10} %{SOURCE12} .
 
@@ -461,6 +465,14 @@ fi
 
 
 %changelog
+* Wed Apr 22 2020 Lubos Uhliarik <luhliari@redhat.com> - 1:1.18.0-2
+- new version 1.18.0
+- Resolves: #1668717 - [RFE] Support loading certificates from hardware token
+  (PKCS#11)
+- Increased types_hash_max_size to 4096 in default config
+- Drop location / from default config (rhbz#1564768)
+- Drop default_sever from default config (rhbz#1373822)
+
 * Thu Aug 29 2019 Lubos Uhliarik <luhliari@redhat.com> - 1:1.16.1-1
 - update to 1.16.1
 - Resolves: #1745697 - CVE-2019-9511 nginx:1.16/nginx: HTTP/2: large amount

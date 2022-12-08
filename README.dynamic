@@ -9,6 +9,8 @@ The '.conf' file contains a single "load_modules" directive.
 This means that whenever a new dynamic module is installed, it will
 automatically be enabled and Nginx will be reloaded.
 
+
+
 --------------------------------------------------------
 Prevent dynamic modules from being enabled automatically
 --------------------------------------------------------
